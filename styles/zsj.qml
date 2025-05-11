@@ -15,9 +15,9 @@
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
-          <prop k="outline_color" v="251,154,153,255"/>
+          <prop k="outline_color" v="0,128,255,255"/>
           <prop k="outline_style" v="solid"/>
-          <prop k="outline_width" v="0.66"/>
+          <prop k="outline_width" v="0.5"/>
           <prop k="outline_width_unit" v="MM"/>
           <prop k="style" v="no"/>
           <data_defined_properties>
