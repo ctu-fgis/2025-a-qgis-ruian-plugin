@@ -340,9 +340,9 @@ class MainApp(QDialog):
         """
         self.option['layers'] = []
         self.option['layers_name'] = []
-        #pridani vusc pokud zaskrtnuto
-        if self.ui.vuscCheckbox.isChecked():
-            self.option['layers'].append('VUSC')
+        #pridani VUP pokud zaskrtnuto
+        if self.ui.vupCheckbox.isChecked():
+            self.option['layers'].append('VUP')
 
         for row in range(0,self.model.rowCount()):
             item = self.model.item(row,0)
@@ -360,7 +360,7 @@ class MainApp(QDialog):
         }
         # not supported yet
         selectionIndex = self.ui.selectionComboBox.currentIndex()
-        if selectionIndex == 1 and 'VUSC' in self.option['layers']:
+        if selectionIndex == 1 and 'VUP' in self.option['layers']:
             vfr_type['zgho'] = 'G'
         # elif selectionIndex == 2:
         #     vfr_type['zgho'] = 'Z'
@@ -508,7 +508,7 @@ class MainApp(QDialog):
                                         ('adresnimista', 'Adresní místa'),
                                         ('staty', 'Stát'),
                                         ('regionysoudrznosti', 'Regiony soudrznosti'),
-                                        ('vusc', 'VUSC'),
+                                        ('vusc', 'VÚSC'),
                                         ('okresy', 'Okresy'),
                                         ('orp', 'ORP'),
                                         ('po', 'POU')]:
@@ -560,7 +560,7 @@ class ImportThread(QThread):
             n = len(self.layers)         
             i = 1
             for l in self.layers:
-                if l == 'VUSC':
+                if l == 'VUP':
                     filename = 'ST_{}'.format(self.file_type)
                 else:
                     filename = 'OB_{}_{}'.format(l, self.file_type)
