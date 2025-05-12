@@ -495,23 +495,23 @@ class MainApp(QDialog):
         layerGroup = root.addGroup(groupName)
 
         # first add well-known layers
-        for layer_name, layer_alias in [('obce', 'Obce'),
-                                        ('spravniobvody', 'Správní obvody'),
-                                        ('mop', 'Městské obvody v Praze'),
-                                        ('momc', 'Městský obvod/část'),
+        for layer_name, layer_alias in [('adresnimista', 'Adresní místa'),
+                                        ('stavebniobjekty', 'Stavební objekty'),
+                                        ('parcely', 'Parcely'),
+                                        ('ulice', 'Ulice'),
+                                        ('zsj', 'Základní sídelní jednotky'),
                                         ('castiobci', 'Části obcí'),
                                         ('katastralniuzemi', 'Katastrální území'),
-                                        ('zsj', 'Základní sídelní jednotky'),
-                                        ('ulice', 'Ulice'),
-                                        ('parcely', 'Parcely'),
-                                        ('stavebniobjekty', 'Stavební objekty'),
-                                        ('adresnimista', 'Adresní místa'),
-                                        ('staty', 'Stát'),
-                                        ('regionysoudrznosti', 'Regiony soudrznosti'),
-                                        ('vusc', 'VÚSC'),
-                                        ('okresy', 'Okresy'),
+                                        ('momc', 'Městské obvody/části'),
+                                        ('spravniobvody', 'Správní obvody v Praze'),
+                                        ('mop', 'Obvody v Praze'),
+                                        ('obce', 'Obec'),
+                                        ('po', 'Obce s POÚ'),
                                         ('orp', 'ORP'),
-                                        ('po', 'POU')]:
+                                        ('okresy', 'Okresy'),
+                                        ('vusc', 'VÚSC (nové kraje)'),
+                                        ('regionysoudrznosti', 'Regiony soudržnosti'),
+                                        ('staty', 'Stát')]:
             layer = datasource.GetLayerByName(layer_name)
             if layer:
                 if not add_layer(layerGroup, layer, layer_alias):
