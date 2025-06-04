@@ -1,6 +1,6 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
 <qgis styleCategories="Symbology" version="3.22.16-Białowieża">
-  <renderer-v2 forceraster="0" enableorderby="0" type="singleSymbol" symbollevels="0">
+  <renderer-v2 forceraster="0" enableorderby="0" type="singleSymbol" symbollevels="0" referencescale="-1">
     <symbols>
       <symbol clip_to_extent="1" name="0" alpha="1" type="fill" force_rhr="0">
         <layer pass="0" locked="0" class="SimpleFill" enabled="1">
