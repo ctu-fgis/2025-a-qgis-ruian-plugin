@@ -22,7 +22,7 @@
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="offset_unit" v="MM"/>
           <prop k="ring_filter" v="0"/>
-	        <prop k="trim_distance_end" v="0"/>
+	  <prop k="trim_distance_end" v="0"/>
           <prop k="trim_distance_end_map_unit_scale" v="3x:0,0,0,0,0,0"/>
           <prop k="trim_distance_end_unit" v="MM"/>
           <prop k="trim_distance_start" v="0"/>
