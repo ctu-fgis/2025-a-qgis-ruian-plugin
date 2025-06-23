@@ -24,13 +24,14 @@ import os
 import sys
 import tempfile
 import time
+import csv
 from collections import OrderedDict
 
-from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp
+from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp, QVariant
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
 
-from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
 
 from osgeo import ogr, gdal
 
@@ -47,6 +48,49 @@ class TextOutputSignal(QObject):
         self.textWritten.emit(str(text))
 
 class MainApp(QDialog):
+
+     def add_layers(self):
+        def add_layer(group, ogr_layer, layer_alias):
+            if ogr_layer.GetFeatureCount() < 1:
+                return False
+
+            layer_name = ogr_layer.GetName()
+            vlayer = QgsVectorLayer('{0}|layername={1}'.format(self.option['datasource'], layer_name),
+                                    layer_alias, 'ogr')
+
+            vlayer.setCrs(QgsCoordinateReferenceSystem("EPSG:5514"))
+            vlayer.setProviderEncoding('UTF-8')
+
+            layer_style = os.path.join(style_path, layer_name.lower() + '.qml')
+            if os.path.exists(layer_style):
+                vlayer.loadNamedStyle(layer_style)
+
+            QgsProject.instance().addMapLayer(vlayer, addToLegend=False)
+            group.addLayer(vlayer)
+
+            if layer_name == 'parcely':
+                ciselnik = {}
+                csv_path = os.path.join(os.path.dirname(__file__), 'files', 'SC_D_POZEMKU.csv')
+                try:
+                    with open(csv_path, encoding='utf-8') as f:
+                        reader = csv.DictReader(f, delimiter=';')
+                        for row in reader:
+                            ciselnik[row['KOD']] = row['NAZEV']
+                except Exception as e:
+                    QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
+
+                if 'DruhPozemku' not in vlayer.fields().names():
+                    vlayer.dataProvider().addAttributes([QgsField('DruhPozemku', QVariant.String)])
+                    vlayer.updateFields()
+
+                with edit(vlayer):
+                    for feature in vlayer.getFeatures():
+                        kod = str(feature['DruhPozemkuKod'])
+                        nazev = ciselnik.get(kod, 'Neznámý')
+                        feature['DruhPozemku'] = nazev
+                        vlayer.updateFeature(feature)
+
+            return True
 
     def __init__(self, iface, parent=None):
         QDialog.__init__(self)
