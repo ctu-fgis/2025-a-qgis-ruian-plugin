@@ -1,5 +1,5 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis styleCategories="Symbology" version="3.22.16-Białowieża">
+<qgis styleCategories="Symbology|Rendering" version="3.22.16-Białowieża" minScale="200000" simplifyAlgorithm="0" hasScaleBasedVisibilityFlag="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyMaxScale="1" symbologyReferenceScale="-1" maxScale="0" simplifyDrawingHints="0">
   <renderer-v2 forceraster="0" enableorderby="0" type="singleSymbol" symbollevels="0" referencescale="-1">
     <symbols>
       <symbol clip_to_extent="1" name="0" alpha="1" type="fill" force_rhr="0">
@@ -30,5 +30,6 @@
   </renderer-v2>
   <blendMode>0</blendMode>
   <featureBlendMode>0</featureBlendMode>
+  <layerOpacity>1</layerOpacity>
   <layerGeometryType>2</layerGeometryType>
 </qgis>
