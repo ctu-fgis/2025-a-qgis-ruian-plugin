@@ -24,13 +24,14 @@ import os
 import sys
 import tempfile
 import time
+import csv
 from collections import OrderedDict
 
-from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp
+from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp, QVariant
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
 
-from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
 
 from osgeo import ogr, gdal
 
@@ -48,6 +49,7 @@ class TextOutputSignal(QObject):
 
 class MainApp(QDialog):
 
+    
     def __init__(self, iface, parent=None):
         QDialog.__init__(self)
 
@@ -472,6 +474,28 @@ class MainApp(QDialog):
             QgsProject.instance().addMapLayer(vlayer, addToLegend=False)
             group.addLayer(vlayer)
 
+            if layer_name == 'parcely':
+                 ciselnik = {}
+                 csv_path = os.path.join(os.path.dirname(__file__), 'files', 'SC_D_POZEMKU.csv')
+                 try:
+                    with open(csv_path, encoding='cp1250') as f:
+                        reader = csv.DictReader(f, delimiter=';')
+                        for column in reader:
+                            ciselnik[int(column['KOD'])] = column['NAZEV']
+                 except Exception as e:
+                    QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
+
+                 if 'DruhPozemku' not in vlayer.fields().names():
+                    vlayer.dataProvider().addAttributes([QgsField('DruhPozemku', QVariant.String)])
+                    vlayer.updateFields()
+
+                 with edit(vlayer):
+                    for feature in vlayer.getFeatures():
+                        kod = (feature['DruhPozemkuKod'])
+                        nazev = ciselnik.get(kod, 'Neznámý')
+                        feature['DruhPozemku'] = nazev
+                        vlayer.updateFeature(feature)
+
             return True
 
         driver = ogr.GetDriverByName(str(self.option['driver']))
@@ -505,7 +529,7 @@ class MainApp(QDialog):
                                         ('spravniobvody', 'Správní obvody v Praze'),
                                         ('mop', 'Obvody v Praze'),
                                         ('obce', 'Obec'),
-                                        ('po', 'Obce s POÚ'),
+                                        ('pou', 'Obce s POÚ'),
                                         ('orp', 'ORP'),
                                         ('okresy', 'Okresy'),
                                         ('vusc', 'VÚSC (nové kraje)'),

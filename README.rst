@@ -1,7 +1,7 @@
 QGIS plugin pro práci s daty RÚIAN
 ==================================
 
-Co je RÚIAN
+Členové projektu : Bořík Josef, Hádlík Marek
 -----------
 
 Registr územní identifikace, adres a nemovitostí, http://ruian.cz
