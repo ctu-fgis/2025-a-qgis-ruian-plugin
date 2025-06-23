@@ -1,10 +1,13 @@
 QGIS plugin pro práci s daty RÚIAN
 ==================================
 
-Členové projektu
------------
 
-Vedouci projektu: Martin Landa(GeoForAll Lab)
+
+Vedouci projektu
+-----------
+Martin Landa(GeoForAll Lab)
+
+Členové projektu
 
 Jan Klima, Lukas Streda, Simon Gajzler, Lukas Kettner, Josef Borik, Marek Hadlik
 
