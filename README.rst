@@ -4,7 +4,7 @@ QGIS plugin pro práci s daty RÚIAN
 Členové projektu
 -----------
 
-Jan Klima, Lukas Streda, Simon Gajzler, Lukas Kettner, Martin Landa, josef Bořík, Marek Hádlík
+Jan Klima, Lukas Streda, Simon Gajzler, Lukas Kettner, Martin Landa, Josef Borik, Marek Hadlik
 
 Co je RÚIAN
 -----------
