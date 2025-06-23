@@ -10,6 +10,7 @@ Co je RÚIAN
 -----------
 
 Registr územní identifikace, adres a nemovitostí, http://ruian.cz
+
 QGIS plugin určený pro **import a vizualizaci územních dat z Registru územní identifikace, adres a nemovitostí (RÚIAN)**. Umožňuje uživatelům jednoduše stáhnout, zpracovat a zobrazit oficiální data státní správy ve formě geografických vrstev.
 
 
