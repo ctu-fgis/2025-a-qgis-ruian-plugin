@@ -8,7 +8,7 @@ Vedouci projektu
 Martin Landa(GeoForAll Lab)
 
 Členové projektu
-
+-----------
 Jan Klima, Lukas Streda, Simon Gajzler, Lukas Kettner, Josef Borik, Marek Hadlik
 
 Co je RÚIAN
