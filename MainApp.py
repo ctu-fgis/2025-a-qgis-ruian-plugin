@@ -529,7 +529,7 @@ class MainApp(QDialog):
                                         ('spravniobvody', 'Správní obvody v Praze'),
                                         ('mop', 'Obvody v Praze'),
                                         ('obce', 'Obec'),
-                                        ('po', 'Obce s POÚ'),
+                                        ('pou', 'Obce s POÚ'),
                                         ('orp', 'ORP'),
                                         ('okresy', 'Okresy'),
                                         ('vusc', 'VÚSC (nové kraje)'),
