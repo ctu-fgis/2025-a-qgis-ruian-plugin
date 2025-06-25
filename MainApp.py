@@ -439,7 +439,11 @@ class MainApp(QDialog):
     def add_dial(vlayer, csv_filename, col_code):
         """Add code (number) value meaning in words according to specified CUZK dial"""
         dial = {}
-        col_name = col_code[:-3]
+        if col_code.endswith('Kod'):
+            col_name = col_code[:-3] + 'Nazev'
+        else:
+            col_name = col_code + 'Nazev'
+            
         csv_path = os.path.join(os.path.dirname(__file__), 'files', csv_filename)
         try:
             with open(csv_path, encoding='cp1250') as f:
@@ -482,11 +486,76 @@ class MainApp(QDialog):
             QgsProject.instance().addMapLayer(vlayer, addToLegend=False)
             group.addLayer(vlayer)
 
-            if layer_name == 'parcely':
-                add_dial(vlayer,'SC_D_POZEMKU.csv','DruhPozemkuKod')
+            # adding description to number codes based on CUZK dials
+            if layer_name == 'adresnimista':
+                add_dial(vlayer,'UI_ULICE.csv','UliceKod')
 
-            if layer_name == '':
-                add_dial(vlayer,'','')
+            if layer_name == 'stavebniobjekty':
+                add_dial(vlayer,'CE_ZPUSOB_VYUZITI_OBJEKTU.csv','TypStavebnihoObjektuKod')
+                add_dial(vlayer,'CS_TYP_STAVEBNIHO_OBJEKTU.csv','ZpusobVyuzitiKod')
+                add_dial(vlayer,'UI_CAST_OBCE.csv','CastObceKod')
+                add_dial(vlayer,'UI_MOMC.csv','MomcKod')
+                add_dial(vlayer,'CE_DRUH_KONSTRUKCE.csv','DruhKonstrukceKod')
+                add_dial(vlayer,'CE_PRIPOJENI_KANAL.csv','PripojeniKanalizaceKod')
+                add_dial(vlayer,'CE_PRIPOJENI_PLYNU.csv','PripojeniPlynKod')
+                add_dial(vlayer,'CE_PRIPOJENI_VODY.csv','PripojeniVodovodKod')
+                add_dial(vlayer,'CE_VYBAVENI_VYTAHEM.csv','VybaveniVytahemKod')
+                add_dial(vlayer,'CE_ZPUSOB_VYTAPENI.csv','ZpusobVytapeniKod')
+
+            if layer_name == 'parcely':
+                add_dial(vlayer,'SC_ZP_VYUZITI_POZ.csv','ZpusobyVyuzitiPozemku')
+                add_dial(vlayer,'CS_DRUH_CISLOVANI_PARCEL.csv','DruhCislovaniKod')
+                add_dial(vlayer,'SC_D_POZEMKU.csv','DruhPozemkuKod')
+                add_dial(vlayer,'UI_KATASTRALNI_UZEMI.csv','KatastralniUzemiKod')
+
+            if layer_name == 'ulice':
+                add_dial(vlayer,'UI_OBEC.csv','ObecKod')
+
+            if layer_name == 'zsj':
+                add_dial(vlayer,'CE_CHARAKTER_ZSJ.csv','CharakterZsjKod')
+                add_dial(vlayer,'UI_KATASTRALNI_UZEMI.csv','KatastralniUzemiKod')
+
+            if layer_name == 'castiobci':
+                add_dial(vlayer,'UI_OBEC.csv','ObecKod')
+
+            if layer_name == 'katastralniuzemi':
+                add_dial(vlayer,'UI_OBEC.csv','ObecKod')
+
+            if layer_name == 'momc':
+                add_dial(vlayer,'UI_MOP.csv','MopKod')
+                add_dial(vlayer,'UI_OBEC.csv','ObecKod')
+                add_dial(vlayer,'UI_SPRAVNI_OBVOD.csv','SpravniObvodKod')
+
+            if layer_name == 'spravniobvody':
+                add_dial(vlayer,'UI_MOMC.csv','SpravniMomcKod')
+            
+            #if layer_name == 'mop':
+            #    add_dial(vlayer,'','')
+    
+            if layer_name == 'obce':
+                add_dial(vlayer,'CS_STATUS_OBCE.csv','StatusKod')
+                add_dial(vlayer,'UI_OKRES.csv','OkresKod')
+                add_dial(vlayer,'UI_POU.csv','PouKod')
+                add_dial(vlayer,'CS_CLENENI_SM_ROZSAH.csv','CleneniSMRozsahKod')
+                add_dial(vlayer,'CS_CLENENI_SM_TYP.csv','CleneniSMTypKod')
+                
+            #if layer_name == 'pou':
+            #    add_dial(vlayer,'','')
+
+            #if layer_name == 'orp':
+            #    add_dial(vlayer,'','')
+
+            if layer_name == 'okresy':
+                add_dial(vlayer,'UI_VUSC.csv','VuscKod')
+
+            if layer_name == 'vusc':
+                add_dial(vlayer,'UI_REGION_SOUDRZNOSTI.csv','RegionSoudrznostiKod')
+
+            #if layer_name == 'regionysoudrznosti':
+            #    add_dial(vlayer,'','')
+
+            #if layer_name == 'staty':
+            #    add_dial(vlayer,'','')
 
             return True
 
