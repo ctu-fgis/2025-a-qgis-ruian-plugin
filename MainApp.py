@@ -436,7 +436,7 @@ class MainApp(QDialog):
         elif i == 1 and self.ui.selectionComboBox.isEnabled():
             self.ui.selectionComboBox.setEnabled(False)
 
-    def add_dial(vlayer, csv_filename, col_code)
+    def add_dial(vlayer, csv_filename, col_code):
         """Add code (number) value meaning in words according to specified CUZK dial"""
         dial = {}
         col_name = col_code[:-3]
