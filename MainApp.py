@@ -26,17 +26,12 @@ import tempfile
 import time
 import csv
 from collections import OrderedDict
-
 from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp, QVariant
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
-
 from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
-
 from osgeo import ogr, gdal
-
 from .ui_MainApp import Ui_MainApp
-
 from .gdal_vfr.vfr4ogr import VfrOgr
 
 class RuianError(Exception):
@@ -48,8 +43,6 @@ class TextOutputSignal(QObject):
         self.textWritten.emit(str(text))
 
 class MainApp(QDialog):
-
-    
     def __init__(self, iface, parent=None):
         QDialog.__init__(self)
 
@@ -133,8 +126,7 @@ class MainApp(QDialog):
         pass
 
     def set_comboDrivers(self):
-        """Set GDAL drivers combo box.
-        """
+        """Set GDAL drivers combo box"""
         model = self.ui.driverBox.model()
         for driver, metadata in list(self.driverTypes.items()):
             item = QStandardItem(str(metadata['alias']))
@@ -328,8 +320,7 @@ class MainApp(QDialog):
                 item.setCheckState(Qt.Unchecked)
 
     def show_advanced(self):
-        """Show advanced options.
-        """
+        """Show advanced options"""
         if self.ui.advancedButton.arrowType() == 4:
             self.ui.advancedButton.setArrowType(Qt.DownArrow)
             self.ui.advancedSettings.show()
@@ -338,8 +329,7 @@ class MainApp(QDialog):
             self.ui.advancedSettings.hide()
 
     def get_options(self):
-        """Start importing data.
-        """
+        """Start importing data"""
         self.option['layers'] = []
         self.option['layers_name'] = []
         #pridani VUP pokud zaskrtnuto
@@ -389,8 +379,6 @@ class MainApp(QDialog):
                                                 level=Qgis.Critical, duration=5)
             return
         self.option['overwriteOutput'] = self.ui.overwriteCheckbox.isChecked()
-
-
         
         # create progress dialog
         self.progress = QProgressDialog('Probíhá import ...', 'Ukončit',
@@ -412,13 +400,11 @@ class MainApp(QDialog):
             self.importThread.start()
 
     def set_status(self, num, tot, text, operation):
-        """Update progress status.
-        """
+        """Update progress status"""
         self.progress.setLabelText('{0} {1} z {2} ({3})'.format(operation, num, tot, text))
 
     def import_close(self):
-        """Terminate import.
-        """
+        """Terminate import"""
         reply = QMessageBox.question(self, 'Ukončit', "Opravdu chcete ukončit import dat?",
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
         if reply == QMessageBox.Yes:
@@ -428,8 +414,7 @@ class MainApp(QDialog):
             self.progress.show()
 
     def import_end(self):
-        """Inform about successfull import.
-        """
+        """Inform about successfull import"""
         self.progress.cancel()
         if self.importThread.aborted:
             return
@@ -451,9 +436,32 @@ class MainApp(QDialog):
         elif i == 1 and self.ui.selectionComboBox.isEnabled():
             self.ui.selectionComboBox.setEnabled(False)
 
+    def add_dial(vlayer, csv_filename, col_code)
+        """Add code (number) value meaning in words according to specified CUZK dial"""
+        dial = {}
+        col_name = col_code[:-3]
+        csv_path = os.path.join(os.path.dirname(__file__), 'files', csv_filename)
+        try:
+            with open(csv_path, encoding='cp1250') as f:
+                reader = csv.DictReader(f, delimiter=';')
+                for column in reader:
+                    dial[int(column['KOD'])] = column['NAZEV']
+        except Exception as e:
+            QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
+
+        if col_name not in vlayer.fields().names():
+            vlayer.dataProvider().addAttributes([QgsField(col_name, QVariant.String)])
+            vlayer.updateFields()
+
+        with edit(vlayer):
+            for feature in vlayer.getFeatures():
+                kod = (feature[col_code])
+                name = dial.get(kod, None)
+                feature[col_name] = name
+                vlayer.updateFeature(feature)
+  
     def add_layers(self):
-        """Add created layers to map display.
-        """
+        """Add created layers to map display"""
         def add_layer(group, ogr_layer, layer_alias):
             if ogr_layer.GetFeatureCount() < 1:
                 # skip empty layers
@@ -475,26 +483,10 @@ class MainApp(QDialog):
             group.addLayer(vlayer)
 
             if layer_name == 'parcely':
-                 ciselnik = {}
-                 csv_path = os.path.join(os.path.dirname(__file__), 'files', 'SC_D_POZEMKU.csv')
-                 try:
-                    with open(csv_path, encoding='cp1250') as f:
-                        reader = csv.DictReader(f, delimiter=';')
-                        for column in reader:
-                            ciselnik[int(column['KOD'])] = column['NAZEV']
-                 except Exception as e:
-                    QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
+                add_dial(vlayer,'SC_D_POZEMKU.csv','DruhPozemkuKod')
 
-                 if 'DruhPozemku' not in vlayer.fields().names():
-                    vlayer.dataProvider().addAttributes([QgsField('DruhPozemku', QVariant.String)])
-                    vlayer.updateFields()
-
-                 with edit(vlayer):
-                    for feature in vlayer.getFeatures():
-                        kod = (feature['DruhPozemkuKod'])
-                        nazev = ciselnik.get(kod, 'Neznámý')
-                        feature['DruhPozemku'] = nazev
-                        vlayer.updateFeature(feature)
+            if layer_name == '':
+                add_dial(vlayer,'','')
 
             return True
 
@@ -557,8 +549,7 @@ class ImportThread(QThread):
         self.overwrite = option['overwriteOutput']
 
     def run(self):
-        """Run download/import thread.
-        """
+        """Run download/import thread"""
         # define temporary directory for downloading VFR data
         data_dir = QgsProcessingUtils().tempFolder()
         # QgsMessageLog.logMessage('\n (VFR) data dir: {}'.format(data_dir),
