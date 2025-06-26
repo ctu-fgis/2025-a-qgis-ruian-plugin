@@ -30,6 +30,7 @@ from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug,
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
 from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
+from qgis.utils import edit
 from osgeo import ogr, gdal
 from .ui_MainApp import Ui_MainApp
 from .gdal_vfr.vfr4ogr import VfrOgr
@@ -471,12 +472,32 @@ class MainApp(QDialog):
             vlayer.dataProvider().addAttributes([QgsField(col_name, QVariant.String)])
             vlayer.updateFields()
 
+        provider = vlayer.dataProvider()
+        fields = vlayer.fields()
+
+        col_code_index = fields.indexFromName(col_code)
+        if col_code_index == -1:
+            QgsMessageLog.logMessage(f"Zdrojový sloupec '{col_code}' nebyl ve vrstvě nalezen.", level=Qgis.Critical)
+            return
+
+        if col_name not in fields.names():
+            vlayer.startEditing()
+            provider.addAttributes([QgsField(col_name, QVariant.String, len=254)])
+            vlayer.updateFields()
+            new_col_index = vlayer.fields().indexFromName(col_name)
+            provider.moveAttribute(new_col_index, col_code_index + 1)
+            vlayer.commitChanges()
+            vlayer.updateFields()
+
         with edit(vlayer):
+            idx_code = vlayer.fields().indexFromName(col_code)
+            idx_name = vlayer.fields().indexFromName(col_name)
             for feature in vlayer.getFeatures():
-                kod = (feature[col_code])
-                name = dial.get(kod, None)
-                feature[col_name] = name
-                vlayer.updateFeature(feature)
+                kod = feature.attributes()[idx_code]
+                if kod is not None:
+                    name = dial.get(kod)
+                    feature[idx_name] = name
+                    vlayer.updateFeature(feature)
   
     def add_layers(self):
         """Add created layers to map display"""
