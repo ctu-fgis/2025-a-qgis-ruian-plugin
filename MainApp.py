@@ -467,10 +467,6 @@ class MainApp(QDialog):
         except Exception as e:
             QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
 
-        if col_name not in vlayer.fields().names():
-            vlayer.dataProvider().addAttributes([QgsField(col_name, QVariant.String)])
-            vlayer.updateFields()
-
         provider = vlayer.dataProvider()
         fields = vlayer.fields()
 
