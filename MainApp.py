@@ -436,20 +436,34 @@ class MainApp(QDialog):
         elif i == 1 and self.ui.selectionComboBox.isEnabled():
             self.ui.selectionComboBox.setEnabled(False)
 
-    def add_dial(vlayer, csv_filename, col_code):
-        """Add code (number) value meaning in words according to specified CUZK dial"""
-        dial = {}
+    def add_dial(self, vlayer, csv_filename, col_code):
+        """Add code (number) value meaning in words according to specified CUZK dial
+        
+        :param vlayer: QgsVectorLayer, in which string attribute is added.
+        :param csv_filename: Name of csv file in 'files' folder.
+        :param col_code: Column name in which the code numbers are.
+        """
+        # Name of the new column
         if col_code.endswith('Kod'):
             col_name = col_code[:-3] + 'Nazev'
         else:
             col_name = col_code + 'Nazev'
             
         csv_path = os.path.join(os.path.dirname(__file__), 'files', csv_filename)
+        
+        dial = {}
         try:
-            with open(csv_path, encoding='cp1250') as f:
+            with open(csv_path, 'r', encoding='cp1250') as f:
                 reader = csv.DictReader(f, delimiter=';')
                 for column in reader:
-                    dial[int(column['KOD'])] = column['NAZEV']
+                    if 'KOD' in column and 'NAZEV' in column:
+                        dial[int(column['KOD'])] = column['NAZEV']
+                    else:
+                        QgsMessageLog.logMessage(f"Číselník {csv_filename} má nesprávné hlavičky (neobsahuje KOD a NAZEV).", level=Qgis.Warning)
+                        return
+        except FileNotFoundError:
+            QgsMessageLog.logMessage(f"Číselník nebyl nalezen: {csv_path}", level=Qgis.Critical)
+            return
         except Exception as e:
             QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
 
