@@ -22,15 +22,10 @@ QGIS plugin určený pro **import a vizualizaci územních dat z Registru územn
 
 Provedené změny (2025)
 -----------
-- implementace číselníku druhu parcel
+- implementace číselníku druhu parcel pomocí obecné funkce
 - změna stylů vykreslování vrstev
 - úprava termínů a pojmů
 - aktualizace dokumentace
-
-TODO
-
-- hromadný výběr obce
-- číselníky přes obecnou funkci
 
 Dokumentace
 -----------
