@@ -29,7 +29,7 @@ from collections import OrderedDict
 from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp, QVariant
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
-from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
+from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsWkbTypes, QgsFeature, QgsGeometry, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
 from osgeo import ogr, gdal
 from .ui_MainApp import Ui_MainApp
 from .gdal_vfr.vfr4ogr import VfrOgr
@@ -466,22 +466,14 @@ class MainApp(QDialog):
             return
         except Exception as e:
             QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
-
-        provider = vlayer.dataProvider()
-        fields = vlayer.fields()
-
-        col_code_index = fields.indexFromName(col_code)
+        
+        col_code_index = vlayer.fields.indexFromName(col_code)
         if col_code_index == -1:
             QgsMessageLog.logMessage(f"Zdrojový sloupec '{col_code}' nebyl ve vrstvě nalezen.", level=Qgis.Critical)
             return
 
-        if col_name not in fields.names():
-            vlayer.startEditing()
-            provider.addAttributes([QgsField(col_name, QVariant.String, len=254)])
-            vlayer.updateFields()
-            new_col_index = vlayer.fields().indexFromName(col_name)
-            vlayer.moveAttribute(new_col_index, col_code_index + 1)
-            vlayer.commitChanges()
+        if col_name not in vlayer.fields.names():
+            vlayer.dataProvider().addAttributes([QgsField(col_name, QVariant.String, len=254)])
             vlayer.updateFields()
 
         with edit(vlayer):
@@ -493,6 +485,42 @@ class MainApp(QDialog):
                     name = dial.get(kod)
                     feature[idx_name] = name
                     vlayer.updateFeature(feature)
+        
+        geom_type = QgsWkbTypes.displayString(vlayer.wkbType())
+        crs_id = vlayer.crs().authid()
+        new_layer_uri = f"{geom_type}?crs={crs_id}"
+        copy_layer = QgsVectorLayer(new_layer_uri, f"{vlayer.name()} (upraveno)", "memory")
+        
+        target_column_name = col_code
+        original_fields = vlayer.fields()
+        target_col_index = original_fields.indexOf(target_column_name)
+        last_col_index = len(original_fields) - 1
+
+        new_field_order = []
+        for i in range(target_col_index + 1):
+            new_field_order.append(original_fields.at(i))
+        if last_col_index != target_col_index:
+            new_field_order.append(original_fields.at(last_col_index))
+        for i, field in enumerate(original_fields):
+            if i != target_col_index and i != last_col_index:
+                new_field_order.append(field)
+        copy_layer.dataProvider().addAttributes(new_field_order)
+        copy_layer.updateFields()
+
+        copy_layer.startEditing()
+        for feature in vlayer.getFeatures():
+            new_feature = QgsFeature(copy_layer.fields())
+            new_feature.setGeometry(feature.geometry())
+            new_attrs = [None] * len(new_field_order)
+            for i, field in enumerate(new_field_order):
+                original_idx = original_fields.indexOf(field.name())
+                if original_idx != -1:
+                    new_attrs[i] = feature.attributes()[original_idx]
+            new_feature.setAttributes(new_attrs)
+            copy_layer.addFeature(new_feature)
+        copy_layer.commitChanges()
+
+        vlayer = copy_layer
   
     def add_layers(self):
         """Add created layers to map display"""
