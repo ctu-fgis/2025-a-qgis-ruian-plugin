@@ -522,10 +522,6 @@ class MainApp(QDialog):
             group.addLayer(vlayer)
 
             # adding description to number codes based on CUZK dials
-          
-            #if layer_name == 'adresnimista':
-            #    self.add_dial(vlayer,'','')
-
             if layer_name == 'stavebniobjekty':
                 self.add_dial(vlayer,'CE_ZPUSOB_VYUZITI_OBJEKTU.csv','TypStavebnihoObjektuKod')
                 self.add_dial(vlayer,'CS_TYP_STAVEBNIHO_OBJEKTU.csv','ZpusobVyuzitiKod')
@@ -541,49 +537,13 @@ class MainApp(QDialog):
                 self.add_dial(vlayer,'CS_DRUH_CISLOVANI_PARCEL.csv','DruhCislovaniKod')
                 self.add_dial(vlayer,'SC_D_POZEMKU.csv','DruhPozemkuKod')
 
-            #if layer_name == 'ulice':
-            #    self.add_dial(vlayer,'','')
-
             if layer_name == 'zsj':
                 self.add_dial(vlayer,'CE_CHARAKTER_ZSJ.csv','CharakterZsjKod')
-
-            #if layer_name == 'castiobci':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'katastralniuzemi':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'momc':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'spravniobvody':
-            #    self.add_dial(vlayer,'','')
-            
-            #if layer_name == 'mop':
-            #    self.add_dial(vlayer,'','')
     
             if layer_name == 'obce':
                 self.add_dial(vlayer,'CS_STATUS_OBCE.csv','StatusKod')
                 self.add_dial(vlayer,'CS_CLENENI_SM_ROZSAH.csv','CleneniSMRozsahKod')
                 self.add_dial(vlayer,'CS_CLENENI_SM_TYP.csv','CleneniSMTypKod')
-                
-            #if layer_name == 'pou':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'orp':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'okresy':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'vusc':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'regionysoudrznosti':
-            #    self.add_dial(vlayer,'','')
-
-            #if layer_name == 'staty':
-            #    self.add_dial(vlayer,'','')
 
             return True
 
