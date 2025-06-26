@@ -30,7 +30,6 @@ from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug,
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
 from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
-from qgis.utils import edit
 from osgeo import ogr, gdal
 from .ui_MainApp import Ui_MainApp
 from .gdal_vfr.vfr4ogr import VfrOgr
