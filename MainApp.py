@@ -480,7 +480,7 @@ class MainApp(QDialog):
             provider.addAttributes([QgsField(col_name, QVariant.String, len=254)])
             vlayer.updateFields()
             new_col_index = vlayer.fields().indexFromName(col_name)
-            provider.moveAttribute(new_col_index, col_code_index + 1)
+            vlayer.moveAttribute(new_col_index, col_code_index + 1)
             vlayer.commitChanges()
             vlayer.updateFields()
 
