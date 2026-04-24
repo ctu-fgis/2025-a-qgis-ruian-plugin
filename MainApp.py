@@ -29,7 +29,7 @@ from collections import OrderedDict
 from qgis.PyQt.QtCore import QSortFilterProxyModel, QThread, pyqtSignal, qDebug, QObject, QSettings, Qt, QRegExp, QVariant
 from qgis.PyQt.QtGui import QStandardItem, QColor, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog, QAbstractItemView, QFileDialog, QProgressDialog, QMessageBox, QLineEdit
-from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsWkbTypes, QgsFeature, QgsGeometry, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit
+from qgis.core import QgsProject, QgsVectorLayer, Qgis, QgsWkbTypes, QgsFeature, QgsGeometry, QgsMessageLog, QgsProcessingUtils, QgsCoordinateReferenceSystem, QgsField, edit, QgsAttributeTableConfig
 from osgeo import ogr, gdal
 from .ui_MainApp import Ui_MainApp
 from .gdal_vfr.vfr4ogr import VfrOgr
@@ -467,12 +467,12 @@ class MainApp(QDialog):
         except Exception as e:
             QgsMessageLog.logMessage(f"Chyba při čtení číselníku: {e}", level=Qgis.Critical)
         
-        col_code_index = vlayer.fields.indexFromName(col_code)
+        col_code_index = vlayer.fields().indexFromName(col_code)
         if col_code_index == -1:
             QgsMessageLog.logMessage(f"Zdrojový sloupec '{col_code}' nebyl ve vrstvě nalezen.", level=Qgis.Critical)
             return
 
-        if col_name not in vlayer.fields.names():
+        if col_name not in vlayer.fields().names():
             vlayer.dataProvider().addAttributes([QgsField(col_name, QVariant.String, len=254)])
             vlayer.updateFields()
 
@@ -485,43 +485,46 @@ class MainApp(QDialog):
                     name = dial.get(kod)
                     feature[idx_name] = name
                     vlayer.updateFeature(feature)
-        
-        geom_type = QgsWkbTypes.displayString(vlayer.wkbType())
-        crs_id = vlayer.crs().authid()
-        new_layer_uri = f"{geom_type}?crs={crs_id}"
-        copy_layer = QgsVectorLayer(new_layer_uri, f"{vlayer.name()} (upraveno)", "memory")
-        
-        target_column_name = col_code
-        original_fields = vlayer.fields()
-        target_col_index = original_fields.indexOf(target_column_name)
-        last_col_index = len(original_fields) - 1
 
-        new_field_order = []
-        for i in range(target_col_index + 1):
-            new_field_order.append(original_fields.at(i))
-        if last_col_index != target_col_index:
-            new_field_order.append(original_fields.at(last_col_index))
-        for i, field in enumerate(original_fields):
-            if i != target_col_index and i != last_col_index:
-                new_field_order.append(field)
-        copy_layer.dataProvider().addAttributes(new_field_order)
-        copy_layer.updateFields()
+        return (idx_code, idx_name)
 
-        copy_layer.startEditing()
-        for feature in vlayer.getFeatures():
-            new_feature = QgsFeature(copy_layer.fields())
-            new_feature.setGeometry(feature.geometry())
-            new_attrs = [None] * len(new_field_order)
-            for i, field in enumerate(new_field_order):
-                original_idx = original_fields.indexOf(field.name())
-                if original_idx != -1:
-                    new_attrs[i] = feature.attributes()[original_idx]
-            new_feature.setAttributes(new_attrs)
-            copy_layer.addFeature(new_feature)
-        copy_layer.commitChanges()
+    def reorder_dials(self, vlayer, new_columns):
+        """Reorder added columns by dials.
 
-        vlayer = copy_layer
-  
+        :param QgsVectorMapLayer: vector layer to be modified
+        :param tuple new_columns: tuple (idx_code, idx_name)
+        """
+        config = vlayer.attributeTableConfig()
+        columns = config.columns()
+
+        desired_order = [f.name() for f in vlayer.fields()]
+        offset = 0
+        for idx_code, idx_name in new_columns:
+            print(idx_code, idx_name)
+            item = desired_order.pop(idx_name)
+            print('p', item)
+            print(idx_code+offset+1)
+            desired_order.insert(idx_code+offset+1, item)
+            print(desired_order)
+            offset += 1
+
+        new_columns = []
+        for name in desired_order:
+            idx = vlayer.fields().indexOf(name)
+            if idx != -1:
+                col = QgsAttributeTableConfig.ColumnConfig()
+                col.name = name
+                col.hidden = False
+                new_columns.append(col)
+
+        config.setColumns(new_columns)
+        config.setActionWidgetVisible(False)
+
+        vlayer.setAttributeTableConfig(config)
+        vlayer.triggerRepaint()
+
+        self.iface.layerTreeView().refreshLayerSymbology(vlayer.id())
+
     def add_layers(self):
         """Add created layers to map display"""
         def add_layer(group, ogr_layer, layer_alias):
@@ -545,28 +548,46 @@ class MainApp(QDialog):
             group.addLayer(vlayer)
 
             # adding description to number codes based on CUZK dials
+            dial_columns = []
             if layer_name == 'stavebniobjekty':
-                self.add_dial(vlayer,'CE_ZPUSOB_VYUZITI_OBJEKTU.csv','TypStavebnihoObjektuKod')
-                self.add_dial(vlayer,'CS_TYP_STAVEBNIHO_OBJEKTU.csv','ZpusobVyuzitiKod')
-                self.add_dial(vlayer,'CE_DRUH_KONSTRUKCE.csv','DruhKonstrukceKod')
-                self.add_dial(vlayer,'CE_PRIPOJENI_KANAL.csv','PripojeniKanalizaceKod')
-                self.add_dial(vlayer,'CE_PRIPOJENI_PLYNU.csv','PripojeniPlynKod')
-                self.add_dial(vlayer,'CE_PRIPOJENI_VODY.csv','PripojeniVodovodKod')
-                self.add_dial(vlayer,'CE_VYBAVENI_VYTAHEM.csv','VybaveniVytahemKod')
-                self.add_dial(vlayer,'CE_ZPUSOB_VYTAPENI.csv','ZpusobVytapeniKod')
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_ZPUSOB_VYUZITI_OBJEKTU.csv','TypStavebnihoObjektuKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CS_TYP_STAVEBNIHO_OBJEKTU.csv','ZpusobVyuzitiKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_DRUH_KONSTRUKCE.csv','DruhKonstrukceKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_PRIPOJENI_KANAL.csv','PripojeniKanalizaceKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_PRIPOJENI_PLYNU.csv','PripojeniPlynKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_PRIPOJENI_VODY.csv','PripojeniVodovodKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_VYBAVENI_VYTAHEM.csv','VybaveniVytahemKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_ZPUSOB_VYTAPENI.csv','ZpusobVytapeniKod'))
 
             if layer_name == 'parcely':
-                self.add_dial(vlayer,'SC_ZP_VYUZITI_POZ.csv','ZpusobyVyuzitiPozemku')
-                self.add_dial(vlayer,'CS_DRUH_CISLOVANI_PARCEL.csv','DruhCislovaniKod')
-                self.add_dial(vlayer,'SC_D_POZEMKU.csv','DruhPozemkuKod')
+                dial_columns.append(
+                    self.add_dial(vlayer,'SC_ZP_VYUZITI_POZ.csv','ZpusobyVyuzitiPozemku'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CS_DRUH_CISLOVANI_PARCEL.csv','DruhCislovaniKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'SC_D_POZEMKU.csv','DruhPozemkuKod'))
 
             if layer_name == 'zsj':
-                self.add_dial(vlayer,'CE_CHARAKTER_ZSJ.csv','CharakterZsjKod')
+                dial_columns.append(
+                    self.add_dial(vlayer,'CE_CHARAKTER_ZSJ.csv','CharakterZsjKod'))
     
             if layer_name == 'obce':
-                self.add_dial(vlayer,'CS_STATUS_OBCE.csv','StatusKod')
-                self.add_dial(vlayer,'CS_CLENENI_SM_ROZSAH.csv','CleneniSMRozsahKod')
-                self.add_dial(vlayer,'CS_CLENENI_SM_TYP.csv','CleneniSMTypKod')
+                dial_columns.append(
+                    self.add_dial(vlayer,'CS_STATUS_OBCE.csv','StatusKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CS_CLENENI_SM_ROZSAH.csv','CleneniSMRozsahKod'))
+                dial_columns.append(
+                    self.add_dial(vlayer,'CS_CLENENI_SM_TYP.csv','CleneniSMTypKod'))
+
+            self.reorder_dials(vlayer, dial_columns)
 
             return True
 
